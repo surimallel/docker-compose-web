@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Student Records</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  </head>
+  <body>
+    <main class="page">
+      <header class="page-header">
+        <p class="eyebrow">STUDENT RECORDS</p>
+        <h1>Keep your class in one place.</h1>
+        <p class="intro">Add a student's details and marks to your records.</p>
+      </header>
+
+      <section class="card form-card" aria-labelledby="form-title">
+        <h2 id="form-title">Add a student</h2>
+        {% if saved %}
+          <p class="notice success" role="status">Student saved successfully.</p>
+        {% endif %}
+        {% if errors %}
+          <div class="notice error" role="alert">
+            <p>Please check the following:</p>
+            <ul>
+              {% for error in errors %}
+                <li>{{ error }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+        {% endif %}
+        <form action="{{ url_for('create_student') }}" method="post">
+          <label for="name">Student name</label>
+          <input id="name" name="name" type="text" maxlength="100" required
+                 autocomplete="name" placeholder="e.g. Alex Morgan"
+                 value="{{ form_data.get('name', '') }}">
+
+          <div class="field-row">
+            <div class="field">
+              <label for="age">Age</label>
+              <input id="age" name="age" type="number" min="1" max="120" step="1"
+                     required placeholder="e.g. 16" value="{{ form_data.get('age', '') }}">
+            </div>
+            <div class="field">
+              <label for="gender">Gender</label>
+              <select id="gender" name="gender" required>
+                <option value="" disabled {% if not form_data.get('gender') %}selected{% endif %}>Select</option>
+                {% for gender in genders %}
+                  <option value="{{ gender }}" {% if form_data.get('gender') == gender %}selected{% endif %}>{{ gender }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+
+          <label for="marks">Marks <span class="label-hint">(out of 100)</span></label>
+          <input id="marks" name="marks" type="number" min="0" max="100" step="0.01"
+                 required placeholder="e.g. 87.5" value="{{ form_data.get('marks', '') }}">
+
+          <button type="submit">Save student</button>
+        </form>
+      </section>
+
+      <section class="records" aria-labelledby="records-title">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">YOUR CLASS</p>
+            <h2 id="records-title">Student records</h2>
+          </div>
+          <span class="record-count">{{ students|length }} {{ 'student' if students|length == 1 else 'students' }}</span>
+        </div>
+
+        {% if students %}
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th scope="col">Name</th>
+                  <th scope="col">Age</th>
+                  <th scope="col">Gender</th>
+                  <th scope="col" class="numeric">Marks</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for student in students %}
+                  <tr>
+                    <td class="student-name">{{ student.name }}</td>
+                    <td>{{ student.age }}</td>
+                    <td>{{ student.gender }}</td>
+                    <td class="numeric">{{ '%.2f'|format(student.marks) }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <div class="empty-state">
+            <p>No students yet.</p>
+            <span>Use the form above to add your first student.</span>
+          </div>
+        {% endif %}
+      </section>
+    </main>
+  </body>
+</html>

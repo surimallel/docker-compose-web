@@ -1,0 +1,31 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-students}
+      POSTGRES_USER: ${POSTGRES_USER:-students}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-students}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  web:
+    image: python:3.12-slim
+    working_dir: /app
+    volumes:
+      - .:/app
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-students}:${POSTGRES_PASSWORD:-students}@db:5432/${POSTGRES_DB:-students}
+    ports:
+      - "5000:5000"
+    command: sh -c "pip install --no-cache-dir -r requirements.txt && gunicorn --bind 0.0.0.0:5000 --workers 1 app:app"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
